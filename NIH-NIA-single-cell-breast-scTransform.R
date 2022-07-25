@@ -15,58 +15,58 @@ library(edgeR)
 setwd("~/Dropbox/Desktop/analysis/single-cell-arya")
 
 Tumors_2<-Read10X("./processed_outs/Sample2-count/outs/filtered_feature_bc_matrix/")
-#Tumors_3<-Read10X("./processed_outs/Sample3-count/outs/filtered_feature_bc_matrix/")
+Tumors_3<-Read10X("./processed_outs/Sample3-count/outs/filtered_feature_bc_matrix/")
 Tumors_4<-Read10X("./processed_outs/Sample4-count/outs/filtered_feature_bc_matrix/")
-#Tumors_5<-Read10X("./processed_outs/Sample5-count/outs/filtered_feature_bc_matrix/")
+Tumors_5<-Read10X("./processed_outs/Sample5-count/outs/filtered_feature_bc_matrix/")
 Bcell_1<-Read10X("./processed_outs/SampleB1-count/outs/filtered_feature_bc_matrix/")
-#Bcell_2<-Read10X("./processed_outs/SampleB2-count/outs/filtered_feature_bc_matrix/")
+Bcell_2<-Read10X("./processed_outs/SampleB2-count/outs/filtered_feature_bc_matrix/")
 Mono_1<-Read10X("./processed_outs/SampleM1-count/outs/filtered_feature_bc_matrix/")
-#Mono_2<-Read10X("./processed_outs/SampleM2-count/outs/filtered_feature_bc_matrix/")
+Mono_2<-Read10X("./processed_outs/SampleM2-count/outs/filtered_feature_bc_matrix/")
 
 Tumors_2 <- CreateSeuratObject(counts = Tumors_2, project = "WD",min.features=1000,min.cells=3)   ###16406 features, 6661 cells
-#Tumors_3 <- CreateSeuratObject(counts = Tumors_3, project = "WD",min.features=1000,min.cells=3)   ###15476 features, 2339 cells
+Tumors_3 <- CreateSeuratObject(counts = Tumors_3, project = "WD",min.features=1000,min.cells=3)   ###15476 features, 2339 cells
 Tumors_4 <- CreateSeuratObject(counts = Tumors_4, project = "WD",min.features=1000,min.cells=3)   ###16406 features, 6661 cells
-#Tumors_5 <- CreateSeuratObject(counts = Tumors_5, project = "WD",min.features=1000,min.cells=3)   ###15476 features, 2339 cells
+Tumors_5 <- CreateSeuratObject(counts = Tumors_5, project = "WD",min.features=1000,min.cells=3)   ###15476 features, 2339 cells
 Bcell_1 <- CreateSeuratObject(counts = Bcell_1, project = "WD",min.features=1000,min.cells=3)   ###16406 features, 6661 cells
-#Bcell_2 <- CreateSeuratObject(counts = Bcell_2, project = "WD",min.features=1000,min.cells=3)   ###15476 features, 2339 cells
+Bcell_2 <- CreateSeuratObject(counts = Bcell_2, project = "WD",min.features=1000,min.cells=3)   ###15476 features, 2339 cells
 Mono_1 <- CreateSeuratObject(counts = Mono_1, project = "WD",min.features=1000,min.cells=3)   ###16406 features, 6661 cells
-#Mono_2 <- CreateSeuratObject(counts = Mono_2, project = "WD",min.features=1000,min.cells=3)   ###15476 features, 2339 cells
+Mono_2 <- CreateSeuratObject(counts = Mono_2, project = "WD",min.features=1000,min.cells=3)   ###15476 features, 2339 cells
 
 Tumors_2@meta.data[,"Treatment"]<-"Tumors"
-#Tumors_3@meta.data[,"Treatment"]<-"Tumors"
+Tumors_3@meta.data[,"Treatment"]<-"Tumors"
 Tumors_4@meta.data[,"Treatment"]<-"Tumors"
-#Tumors_5@meta.data[,"Treatment"]<-"Tumors"
+Tumors_5@meta.data[,"Treatment"]<-"Tumors"
 Bcell_1@meta.data[,"Treatment"]<-"Bcell"
-#Bcell_2@meta.data[,"Treatment"]<-"Bcell"
+Bcell_2@meta.data[,"Treatment"]<-"Bcell"
 Mono_1@meta.data[,"Treatment"]<-"Mono"
-#Mono_2@meta.data[,"Treatment"]<-"Mono"
+Mono_2@meta.data[,"Treatment"]<-"Mono"
 
 Tumors_2@meta.data[,"Replicate"]<-"1"
-#Tumors_3@meta.data[,"Replicate"]<-"2"
+Tumors_3@meta.data[,"Replicate"]<-"2"
 Tumors_4@meta.data[,"Replicate"]<-"3"
-#Tumors_5@meta.data[,"Replicate"]<-"4"
+Tumors_5@meta.data[,"Replicate"]<-"4"
 Bcell_1@meta.data[,"Replicate"]<-"1"
-#Bcell_2@meta.data[,"Replicate"]<-"2"
+Bcell_2@meta.data[,"Replicate"]<-"2"
 Mono_1@meta.data[,"Replicate"]<-"1"
-#Mono_2@meta.data[,"Replicate"]<-"2"
+Mono_2@meta.data[,"Replicate"]<-"2"
 
 Tumors_2@meta.data[,"ID"]<-"Tumors_2"
-#Tumors_3@meta.data[,"ID"]<-"Tumors_3"
+Tumors_3@meta.data[,"ID"]<-"Tumors_3"
 Tumors_4@meta.data[,"ID"]<-"Tumors_4"
-#Tumors_5@meta.data[,"ID"]<-"Tumors_5"
+Tumors_5@meta.data[,"ID"]<-"Tumors_5"
 Bcell_1@meta.data[,"ID"]<-"Bcell_1"
-#Bcell_2@meta.data[,"ID"]<-"Bcell_2"
+Bcell_2@meta.data[,"ID"]<-"Bcell_2"
 Mono_1@meta.data[,"ID"]<-"Mono_1"
-#Mono_2@meta.data[,"ID"]<-"Mono_2"
+Mono_2@meta.data[,"ID"]<-"Mono_2"
 
 WD1<-merge(x=Tumors_2,y=Tumors_4, add.cell.ids=c("Tumors_2","Tumors_4"),project="ARYA")
-#WD2<-merge(x=Tumors_4,y=Tumors_5, add.cell.ids=c("Tumors_4","Tumors_5"),project="ARYA")
+WD2<-merge(x=Tumors_4,y=Tumors_5, add.cell.ids=c("Tumors_4","Tumors_5"),project="ARYA")
 WD3<-merge(x=Bcell_1,y=Mono_1, add.cell.ids=c("Bcell_1","Mono_1"),project="ARYA")
-#WD4<-merge(x=Mono_1,y=Mono_2, add.cell.ids=c("Mono_1","Mono_2"),project="ARYA")
+WD4<-merge(x=Mono_1,y=Mono_2, add.cell.ids=c("Mono_1","Mono_2"),project="ARYA")
 
 WD<-merge(x=WD1,y=WD3)
-#WD<-merge(x=WD,y=WD3)
-#WD<-merge(x=WD,y=WD4)
+WD<-merge(x=WD,y=WD3)
+WD<-merge(x=WD,y=WD4)
 ###Normalize and find variable features
 
 ###Calculate % mitochondrial
@@ -102,6 +102,7 @@ VlnPlot(WD,features="nFeature_RNA",pt.size = 0.00) ###WD1 and WD2 have more feat
 FeatureScatter(WD, "nCount_RNA", "nFeature_RNA", group.by = "seurat_clusters", pt.size = 0.5)
 FeatureScatter(WD, "nCount_RNA", "nFeature_RNA", group.by = "ID", pt.size = 0.5)
 
+# SC transform testing
 WD.list<-SplitObject(object = WD, split.by = "ID")
 
 for (i in 1:length(x = WD.list)) {
@@ -123,9 +124,56 @@ WD.breast <- RunPCA(WD.breast, verbose = FALSE)
 WD.breast <- RunUMAP(WD.breast, dims = 1:30)
 plots <- DimPlot(WD.breast, group.by = c("tech", "celltype"))
 plots & theme(legend.position = "top") & guides(color = guide_legend(nrow = 3, byrow = TRUE, 
-                                                                     override.aes = list(size = 3)))
+                                                                     override.aes = list(size = 3))
+### CCA integration approach
 
-                              
+WD.list<-SplitObject(object = WD, split.by = "ID")
+
+for (i in 1:length(x = WD.list)) {
+  WD.list[[i]] <- NormalizeData(object = WD.list[[i]], verbose = FALSE)
+  WD.list[[i]] <- FindVariableFeatures(object = WD.list[[i]], 
+                                             selection.method = "vst", nfeatures = 2000, verbose = FALSE)
+}
+
+reference.list <- WD.list[c("Tumors_2","Tumors_3","Tumors_4","Tumors_5","Bcell_1","Bcell_2","Mono_1","Mono_2")]
+WD.anchors <- FindIntegrationAnchors(object.list = reference.list, dims = 1:30)
+
+WD.breast <- IntegrateData(anchorset = WD.anchors, dims = 1:30)
+
+###Switch to the integrated data for downstream analyses
+DefaultAssay(object = WD.breast) <- "integrated"
+
+# Run the standard workflow for visualization and clustering
+WD.breast <- ScaleData(object = WD.breast, verbose = FALSE)
+WD.breast <- RunPCA(object = WD.breast, npcs = 30, verbose = FALSE)
+WD.breast <- RunUMAP(object = WD.breast, reduction = "pca", 
+                               dims = 1:30)
+p1 <- DimPlot(object = WD.breast, reduction = "umap", group.by = "ID")
+p2 <- DimPlot(object = WD.breast, reduction = "umap", group.by = "Treatment", 
+              label = TRUE, repel = TRUE) + NoLegend()
+plot_grid(p1, p2)
+p3 <- DimPlot(object = WD.breast, reduction = "umap", group.by = "seurat_clusters", 
+              label = TRUE, repel = TRUE) 
+plot(p3)
+summary(factor(WD.breast$Treatment))
+
+###Dimension reduction
+DimHeatmap(WD.breast, dims = c(1:9), cells = 500, balanced = TRUE)
+
+###Graph based clustering
+WD.breast <- FindNeighbors(WD.breast, reduction = "pca", dims = 1:30, nn.eps = 0.5)
+WD.breast <- FindClusters(WD.breast, resolution = 0.5, n.start = 10)
+
+WD.breast <- RunTSNE(WD.breast, dims = 1:30, nthreads = 4, max_iter = 2000)
+
+p1 <- DimPlot(WD.breast, reduction = "umap", pt.size = 1, group.by="ID",label=TRUE) + ggtitle(label = "ID")
+p2 <- DimPlot(WD.breast, reduction = "umap", pt.size = 1, group.by="seurat_clusters",label=TRUE) + ggtitle(label = "Clusters")
+plot(p1)
+plot(p2)
+p1 <- AugmentPlot(plot = p1)
+p2 <- AugmentPlot(plot = p2)
+plot_grid(p1, p2)
+CombinePlots(plots = list(p1,p2),legend="TRUE")
 
 ###Csf1r gene
 DotPlot(WD.breast,col.min=0,features=c("Csf1r"))+labs(title="Csf1r")
