@@ -1,6 +1,6 @@
 # Composite epigenetic profiling reveals dysregulated chromatin organization in aged hematopoietic stem cells underlying aberrant transcription
 
-HSC Aging epigenome project, 2022
+HSC Aging epigenome project, 2025
 Le Zong, Bongsoo Park, Isabel Beerman
 Epigenetics and Stem Cell Aging
 Translational Gerontology Branch
