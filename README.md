@@ -8,7 +8,7 @@ This pipeline processes histone modification ChIP-seq data to generate epigenome
 The following Python scripts are included:
 
 generate_consensus_peaks.py: Generates consensus peaks from ChIP-seq data.
-parse_auc_peak.py: Parses peak areas under the curve (AUC) for analysis.
+parse_auc_peak.py: Parses peak areas under the curve (AUC, aka: peak height) for downstream analysis.
 create_preliminary_report.py: Creates preliminary reports from processed data.
 create_summary_report.py: Generates summary reports for peak calling results.
 create_summary_report_final.py: Produces the final summary report.
