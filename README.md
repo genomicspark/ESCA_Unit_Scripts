@@ -4,7 +4,7 @@ HSC Aging epigenome project, 2025
 Le Zong, Bongsoo Park, Isabel Beerman
 Epigenetics and Stem Cell Aging
 Translational Gerontology Branch
-National Instiute on Aging
+National Institute on Aging
 
 
 # Bioinformatics pipeline (bivalent domain detection scripts)
@@ -19,11 +19,11 @@ This project is created to develop epigenome profiles from histone modification 
 6. research_bivalent_domain.py
 
 # Additional visualization scripts
-1. Create composite plot
+1. Create a composite plot
 2. Create CDT file for heatmap/composite plot
 
-Please specify reference genomic coordinate using BED format.
-We used pyBigWig library to retrieve ChIP-seq insensity.
+Please specify the reference genomic coordinate using BED format.
+We used pyBigWig library to retrieve ChIP-seq intensity.
 e.g. parse_cdt_bin.py BigWigName
 e.g. parse_cdt_hic.py BigWigName
 
