@@ -7,12 +7,12 @@ Developed by: Bongsoo Park (2025)
 This pipeline processes histone modification ChIP-seq data to generate epigenome profiles and detect bivalent domains. 
 The following Python scripts are included:
 
-generate_consensus_peaks.py: Generates consensus peaks from ChIP-seq data.
-parse_auc_peak.py: Parses peak areas under the curve (AUC, aka: peak height) for downstream analysis.
-create_preliminary_report.py: Creates preliminary reports from processed data.
-create_summary_report.py: Generates summary reports for peak calling results.
-create_summary_report_final.py: Produces the final summary report.
-research_bivalent_domain.py: Identifies and analyzes bivalent domains.
+1. generate_consensus_peaks.py: Generates consensus peaks from ChIP-seq data.
+2. parse_auc_peak.py: Parses peak areas under the curve (AUC, aka: peak height) for downstream analysis.
+3. create_preliminary_report.py: Creates preliminary reports from processed data.
+4. create_summary_report.py: Generates summary reports for peak calling results.
+5. create_summary_report_final.py: Produces the final summary report.
+6. research_bivalent_domain.py: Identifies and analyzes bivalent domains.
 
 Input Requirements:  Reference genomic coordinates in BED format.  
 ChIP-seq intensity retrieved using the pyBigWig library (e.g., parse_cdt_bin.py BigWigName, parse_cdt_hic.py BigWigName).
