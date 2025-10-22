@@ -31,11 +31,11 @@ Running Scripts: Execute the scripts in the order listed above for the respectiv
 Parse_cdt scripts will generate a CDT file (tab-delimited signal matrix), then you can create a composite plot with it. 
 
 Example commands:
-python parse_cdt_bin.py YHSC_H3K4me3.chr19.bigWig
-python parse_cdt_hic.py YHSC_H3K4me3.chr19.bigWig
-python composite_plots_resize.py -w 10 <cdt_folder_name>
+1. python parse_cdt_bin.py YHSC_H3K4me3.chr19.bigWig
+2. python parse_cdt_hic.py YHSC_H3K4me3.chr19.bigWig
+3. python composite_plots_resize.py -w 10 <cdt_folder_name>
 
-Output: Results include consensus peaks, reports, composite plots, and CDT files for further analysis.
+Output: Results include consensus peaks, reports, composite plots (SVG format), and CDT files for further analysis.
 
 # Single-Cell Analysis Pipeline
 Developed by: Bongsoo Park (2022)
