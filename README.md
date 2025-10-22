@@ -25,6 +25,7 @@ CDT File Generation: Produces CDT files for generating heatmaps and composite pl
 
 # Usage Instructions
 Setup: Ensure all dependencies (e.g., pyBigWig, matplotlib) are installed. tested in Python 3.9.6
+
 Input Files: Provide genomic coordinates in BED format for peak calling and BigWig files for visualization.
 Running Scripts: Execute the scripts in the order listed above for the respective pipelines. 
 Parse_cdt scripts will generate a CDT file (tab-delimited signal matrix), then you can create a composite plot with it. 
