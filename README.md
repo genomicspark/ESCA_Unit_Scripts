@@ -21,16 +21,18 @@ ChIP-seq intensity retrieved using the pyBigWig library (e.g., parse_cdt_bin.py 
 The following scripts facilitate visualization of epigenomic data:
 
 Composite Plot Generation: Creates composite plots for visualizing epigenetic profiles.
-CDT File Generation: Produces CDT files for heatmap and composite plot generation.
+CDT File Generation: Produces CDT files for generating heatmaps and composite plots.
 
 # Usage Instructions
 Setup: Ensure all dependencies (e.g., pyBigWig, matplotlib) are installed.
 Input Files: Provide genomic coordinates in BED format for peak calling and BigWig files for visualization.
 Running Scripts: Execute the scripts in the order listed above for the respective pipelines. 
+Parse_cdt scripts will generate a CDT file (tab-delimited signal matrix), then you can create a composite plot with it. 
 
 Example commands:
 python parse_cdt_bin.py <BigWigName>
 python parse_cdt_hic.py <BigWigName>
+python composite_plots_resize.py -w 10 <cdt_folder_name>
 
 Output: Results include consensus peaks, reports, composite plots, and CDT files for further analysis.
 
