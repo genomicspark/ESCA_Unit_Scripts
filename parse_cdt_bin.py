@@ -1,109 +1,129 @@
+#!/usr/bin/env python3
+
+"""
+Generates a CDT file for heatmaps based on signal from a BigWig file.
+
+This script takes a reference gene file (BED format) and a BigWig file.
+It extracts signal values around the TSS and TES of each gene, bins them,
+and outputs a sorted CDT file ready for visualization.
+"""
+
 import operator
 import pyBigWig
-import sys, os
+import sys
+import argparse
+import math
 
-f = open("UCSC-RefSeq.exclude.Mir.GroupC.bed")
-x = {}
-y = {}
+def generate_cdt(ref_gene_file, bigwig_file, output_prefix, heatmap_size=5000, bin_size=10):
+    """
+    Generates CDT files for TSS and TES regions.
 
-heatmap_size = 5000
-bin_size = 10
-for line in f:
-	line = line.strip()
-	data = line.split("\t")
-	chrom = data[0]
-	# +/- from TSS
-	if data[5] == "+":
-		start = int(data[1]) - heatmap_size
-		end = int(data[1]) + heatmap_size
-	else:
-		start = int(data[2]) - heatmap_size
-		end = int(data[2]) + heatmap_size
-	x.update({data[3]:[chrom,start,end,str(end-start),data[5]]})
-	
-	# +/- from TTS
-	if data[5] == "+":
-		start = int(data[2]) - heatmap_size
-		end = int(data[2]) + heatmap_size
-	else:
-		start = int(data[1]) - heatmap_size
-		end = int(data[1]) + heatmap_size
-	y.update({data[3]:[chrom,start,end,str(end-start),data[5]]})
-f.close()
+    Args:
+        ref_gene_file (str): Path to the UCSC RefSeq gene file (BED format).
+        bigwig_file (str): Path to the input BigWig file.
+        output_prefix (str): Prefix for the output CDT files.
+        heatmap_size (int): Flanking region size around TSS/TES.
+        bin_size (int): Size of bins for averaging signal.
+    """
+    tss_regions = {}
+    tes_regions = {}
 
-print(len(x))
+    with open(ref_gene_file, 'r') as f_ref:
+        for line in f_ref:
+            data = line.strip().split('\t')
+            if len(data) < 6:
+                continue
+            
+            chrom, strand, gene_name = data[0], data[5], data[3]
 
-fn = sys.argv[1]
-f = open("file_list_"+fn+".txt","w")
-f.write(fn+"\n")
-f.close()
+            if strand == "+":
+                tss_start, tss_end = int(data[1]) - heatmap_size, int(data[1]) + heatmap_size
+                tes_start, tes_end = int(data[2]) - heatmap_size, int(data[2]) + heatmap_size
+            else:
+                tss_start, tss_end = int(data[2]) - heatmap_size, int(data[2]) + heatmap_size
+                tes_start, tes_end = int(data[1]) - heatmap_size, int(data[1]) + heatmap_size
 
-f = open("file_list_"+fn+".txt")
-for fn in f:
-	fn = fn.strip()
-	print(fn)
-	bw = pyBigWig.open(fn)
-	fw1 = open(fn+"_auc_tss1kb.cdt","w")
-	fw2 = open(fn+"_auc_tes1kb.cdt","w")
-	auc_list = [x,y]
-	fw_list = [fw1,fw2]
-	file_names = ["tss1kb","tes1kb"]
-	cnt = 0
-	for ele in auc_list:
-		print(cnt, file_names[cnt])
-		x_auc = {}
-		x_val = {}
-		line_cnt = 0
-		for the_key in ele:
-			# AUC version #1
-			coor = ele[the_key][0] + ":" + str(ele[the_key][1]) + "-" + str(ele[the_key][2])
-			try:
-				tmp = bw.values(ele[the_key][0], int(ele[the_key][1]), int(ele[the_key][2]))
-				auc = 0.0
-				line_cnt += 1
-				if line_cnt % 100 == 0:
-					print(fn,line_cnt,the_key,ele[the_key][4],len(tmp))
-				ele3 = []
-				for ele2 in tmp:
-					if str(ele2) != "nan":
-						ele2 = float(ele2)/40
-						auc += float(ele2)
-						ele3.append(str(ele2).split(".")[0] + "." + str(ele2).split(".")[1][:2]) 
-					else:
-						ele3.append("0.00")
-				if ele[the_key][4] == "-":
-					ele3.reverse()
-					ele4 = the_key+"\t1"
-					for element in ele3:
-						ele4 += "\t" + element
-				else:
-					ele4 = the_key+"\t1"
-					for element in ele3:
-						ele4 += "\t" + element
-				if bin_size == 1:
-					x_auc.update({the_key:ele4})
-				else:
-					ele5 = the_key+"\t1"
-					data = ele4.split("\t")
-					bin_value = 0.00
-					cnt2 = 0
-					for i in range(2, len(data)-2):
-						cnt2 += 1
-						bin_value += float(data[i])
-						if cnt2 % bin_size == 0:
-							ele5 += "\t" + str(float(bin_value)/float(bin_size))
-							bin_value = 0.0
-					x_auc.update({the_key:ele5})
-				x_val.update({the_key:auc})
-			except:
-				pass
-		sorted_x = sorted(x_val.items(), key=operator.itemgetter(1), reverse=True)
-		header = ""
-		for i in range(-1*heatmap_size+bin_size,heatmap_size,bin_size):
-			header += "\t" + str(i)
-		fw_list[cnt].write("Uniqe\tWeight"+header+"\n")
-		for the_key, the_value in sorted_x:
-			fw_list[cnt].write(x_auc[the_key] + "\n")
-		cnt += 1
-	fw1.close()
-f.close()
+            tss_regions[gene_name] = [chrom, tss_start, tss_end, str(tss_end - tss_start), strand]
+            tes_regions[gene_name] = [chrom, tes_start, tes_end, str(tes_end - tes_start), strand]
+
+    print(f"Loaded {len(tss_regions)} TSS and {len(tes_regions)} TES regions.")
+
+    try:
+        bw = pyBigWig.open(bigwig_file)
+    except RuntimeError as e:
+        print(f"Error opening BigWig file {bigwig_file}: {e}", file=sys.stderr)
+        return
+
+    for region_type, regions in [('tss', tss_regions), ('tes', tes_regions)]:
+        output_file = f"{output_prefix}_{region_type}.cdt"
+        print(f"Processing {region_type.upper()} regions...")
+
+        auc_values = {}
+        binned_signals = {}
+
+        for i, (gene_name, region_info) in enumerate(regions.items()):
+            if i % 1000 == 0:
+                print(f"  ... processed {i} genes")
+
+            chrom, start, end, _, strand = region_info
+            try:
+                raw_values = bw.values(chrom, start, end)
+                processed_values = []
+                auc = 0.0
+                for val in raw_values:
+                    if val is not None and not math.isnan(val):
+                        # Normalization factor from original script
+                        norm_val = val / 40.0
+                        processed_values.append(f"{norm_val:.2f}")
+                        auc += norm_val
+                    else:
+                        processed_values.append("0.00")
+
+                if strand == '-':
+                    processed_values.reverse()
+
+                # Binning logic
+                binned_line = f"{gene_name}\t1"
+                if bin_size > 1:
+                    for j in range(0, len(processed_values), bin_size):
+                        chunk = processed_values[j:j + bin_size]
+                        bin_sum = sum(float(v) for v in chunk)
+                        binned_line += f"\t{bin_sum / len(chunk):.4f}"
+                else:
+                    binned_line += "\t" + "\t".join(processed_values)
+                
+                binned_signals[gene_name] = binned_line
+                auc_values[gene_name] = auc
+
+            except RuntimeError as e:
+                print(f"  Warning: Could not process {gene_name} ({chrom}:{start}-{end}): {e}", file=sys.stderr)
+                continue
+
+        # Sort by AUC and write to CDT file
+        sorted_genes = sorted(auc_values.items(), key=operator.itemgetter(1), reverse=True)
+        
+        with open(output_file, 'w') as f_out:
+            header = '\t'.join(str(i) for i in range(-heatmap_size + bin_size, heatmap_size, bin_size))
+            f_out.write(f"Unique\tWeight\t{header}\n")
+            for gene_name, _ in sorted_genes:
+                if gene_name in binned_signals:
+                    f_out.write(binned_signals[gene_name] + '\n')
+        
+        print(f"Finished writing {output_file}")
+
+    bw.close()
+
+def main():
+    """Command-line argument parsing."""
+    parser = argparse.ArgumentParser(description="Generate CDT files for heatmaps from BigWig data.")
+    parser.add_argument("ref_gene_file", help="UCSC RefSeq gene file in BED format.")
+    parser.add_argument("bigwig_file", help="Input BigWig file.")
+    parser.add_argument("-o", "--output_prefix", required=True, help="Prefix for output CDT files (e.g., my_experiment).")
+    parser.add_argument("--heatmap_size", type=int, default=5000, help="Size of the flanking region around TSS/TES.")
+    parser.add_argument("--bin_size", type=int, default=10, help="Size of bins for averaging signal.")
+    args = parser.parse_args()
+
+    generate_cdt(args.ref_gene_file, args.bigwig_file, args.output_prefix, args.heatmap_size, args.bin_size)
+
+if __name__ == "__main__":
+    main()
