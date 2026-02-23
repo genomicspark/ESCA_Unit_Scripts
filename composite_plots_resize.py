@@ -1,155 +1,131 @@
-# Composite plot script by Rohit Reja
-# Pugh Lab, Center for Eukaryotic Gene Regulation
-# Edited by Lila Rieber - 11/6/17
-# Updated by Bongsoo Park - Python3 comparable - 5/1/2022
+#!/usr/bin/env python3
 
-# Import libraries
+"""
+Generates composite plots from CDT files.
+
+This script reads one or more CDT files from a directory, calculates the average
+signal profile, and plots them on a single graph. It supports moving average
+smoothing, normalization, and creating shaded plots.
+"""
+
 import sys
 import os
 import argparse
-from pylab import *
 import numpy as np
-import matplotlib as plt
+import matplotlib.pyplot as plt
+from operator import add
 
-list1 = {}
-## color schema Dark-RED-ROY-G-BIV Black, 
-colors = ["#FF2222","#2222FF","#FF6666","#3366FF","#000000","#FF3333","#FF9933","#FFFF00","#4C9900","#0000FF","#4B0082","#9F00FF","#000000","#FF3333","#FF9933","#FFFF00","#4C9900",
-"#0000FF","#4B0082","#9F00FF","#000000","#FF3333","#FF9933","#FFFF00","#4C9900","#0000FF","#4B0082","#9F00FF","#000000","#FF3333","#FF9933","#FFFF00","#4C9900","#0000FF","#4B0082","#9F00FF","#000000",
-"#FF3333","#FF9933","#FFFF00","#4C9900","#0000FF","#4B0082","#9F00FF","#000000"]
+# Expanded color palette for more plots
+COLORS = [
+    "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", 
+    "#e377c2", "#7f7f7f", "#bcbd22", "#17becf", "#aec7e8", "#ffbb78", 
+    "#98df8a", "#ff9896", "#c5b0d5", "#c49c94", "#f7b6d2", "#c7c7c7", 
+    "#dbdb8d", "#9edae5"
+]
+
+def moving_average(interval, window_size):
+    """Calculates the moving average of an interval."""
+    window = np.ones(int(window_size)) / float(window_size)
+    return np.convolve(list(interval), list(window), "valid")
 
 def process_file(infile):
-	print("processing "+infile)
-	X = []
-	noL = 0
-	with open(infile) as in_sense:
-		for line in in_sense:
-			if line.startswith("Uniqe") or line.startswith("gene"):
-				tmp = line.rstrip().split("\t")[2:]
-				X = [float(x) for x in tmp]
-				xmin = min(X)
-				xmax = max(X)
-				Y = [0]*len(X)
-				continue
-		
-			noL += 1
-			tmplist = line.rstrip().split("\t")[2:]
-			newList = [float(x) for x in tmplist]
-			Y = map(add,Y,newList)
-		in_sense.close()
+    """Reads a CDT file and calculates the average signal profile."""
+    print(f"Processing {infile}...")
+    x_coords, y_sum = [], []
+    num_lines = 0
+    with open(infile, 'r') as f_in:
+        for i, line in enumerate(f_in):
+            if i == 0: # Header line
+                x_coords = [float(x) for x in line.strip().split('\t')[2:]]
+                y_sum = [0.0] * len(x_coords)
+                continue
+            
+            try:
+                tmplist = [float(x) for x in line.strip().split('\t')[2:]]
+                y_sum = list(map(add, y_sum, tmplist))
+                num_lines += 1
+            except (ValueError, IndexError) as e:
+                print(f"  Warning: Skipping malformed line {i+1} in {infile}: {e}", file=sys.stderr)
 
-	return X, Y, xmin, xmax, noL	
+    if num_lines > 0:
+        y_avg = [val / num_lines for val in y_sum]
+    else:
+        y_avg = y_sum
 
-def plot_graph(X, Y1, Y2, xmin, xmax, window_size, y, shaded, normalize, ax, label, count, noL):
-	if shaded:
-		# matplotlib v2.0
-		plt.rcParams["font.family"] = "sans-serif"
-		plt.rcParams["font.serif"] = "Ubuntu"
-		plt.rcParams["font.monospace"] = "Ubuntu Mono"
-		plt.rcParams["font.size"] = 8
-		plt.rcParams["axes.labelsize"] = 8
-		plt.rcParams["axes.labelweight"] = "bold"
-		plt.rcParams["xtick.labelsize"] = 8
-		plt.rcParams["ytick.labelsize"] = 8
-		plt.rcParams["legend.fontsize"] = 10
-		plt.rcParams["figure.titlesize"] = 12
+    return x_coords, y_avg, num_lines
 
-	X = movingaverage(X, window_size)
-	Y1 = movingaverage(Y1, window_size)
-	if Y2 is not None:
-		Y2 = movingaverage(Y2, window_size)
-	if normalize:
-		Y1 = [float(x)/max(Y1) for x in Y1]
-		if Y2 is not None:
-			Y2 = [float(x)/max(Y2) for x in Y2]
+def plot_graph(ax, x, y_avg, window_size, y_limit, shaded, normalize, label, color, num_lines):
+    """Plots a single signal profile on the given axes."""
+    if not x or not y_avg:
+        print(f"  Skipping plot for {label} due to empty data.")
+        return
 
-	if shaded:
-		ax.plot(X, Y1, color=colors[count],label=label,lw=3.0, zorder=2)
-		ax.fill_between(X,Y1,0,facecolor=colors[count],edgecolor=colors[count])	
-	else: 
-		ax.plot(X, Y1, color=colors[count],label=label,lw=3.0)
+    x_smooth = moving_average(x, window_size)
+    y_smooth = moving_average(y_avg, window_size)
 
-	if Y2 is not None:
-		if shaded:	 
-			ax.plot(X, -np.array(Y2), color=colors[count],label=label,lw=3.0, zorder=2)
-			ax.fill_between(X,-np.array(Y2),0,facecolor=colors[count],edgecolor=colors[count])	
-		else: 
-			ax.plot(X, -np.array(Y2), color=colors[count],label=label,lw=3.0)
+    if normalize and max(y_smooth) > 0:
+        y_smooth = [val / max(y_smooth) for val in y_smooth]
 
-	# Resize the plots
-	ax.set_xlim(-5000,5000)
-	ax.set_ylim(0, max(Y1) * 1.5)
-	if y is not None:
-		if Y2 is None:
-			ax.set_ylim(0, y)
-		else:
-			ax.set_ylim(-y, y)
-	
-# Moving Average smoothing
-def movingaverage(interval, window_size):
-	window= np.ones(int(window_size))/float(window_size)
-	return np.convolve(list(interval), list(window), "valid")
+    plot_label = f"{label} (n={num_lines})"
+    ax.plot(x_smooth, y_smooth, color=color, label=plot_label, lw=2.5, zorder=2)
+    if shaded:
+        ax.fill_between(x_smooth, y_smooth, 0, facecolor=color, alpha=0.3)
 
-def run():
-	parser = argparse.ArgumentParser()
-	parser.add_argument("input_directory",
-						help="Path to directory containing *.tab files")
-	parser.add_argument("-w", type=int, default=5,
-						help="Window size of moving average, default=5")
-	parser.add_argument("-y", action="store", type=int,
-					  help="y-axis bound")
-	parser.add_argument("--shaded", action="store_true", 
-				help="Creates shaded plot")
-	parser.add_argument("--normalize", action="store_true", 
-				help="Divides by max to normalize")
+    if y_limit is not None:
+        ax.set_ylim(0, y_limit)
+    else:
+        current_max = ax.get_ylim()[1]
+        new_max = max(current_max, max(y_smooth) * 1.2)
+        ax.set_ylim(0, new_max)
 
-	args = parser.parse_args()
+    ax.set_xlim(min(x_smooth), max(x_smooth))
 
-	antisense_files = []
-	sense_files = []
-	unstranded_files = []
-	
-	output_folder = os.path.join(args.input_directory,"_composite/") 
-	if not os.path.exists(output_folder):
-		os.makedirs(output_folder)
-	outfile = os.path.join(output_folder,"composite_plot_all_factors.svg")
-	
-	if not os.path.exists(args.input_directory):
-		parser.error("Path {} does not exist.".format(args.input_directory))
-	if os.path.isdir(args.input_directory):
-		for fname in os.listdir(args.input_directory):
-			if fname.endswith(".cdt"):
-				fpath = os.path.join(args.input_directory, fname)
-				if fpath.endswith("_forward.cdt"):
-					sense_files.append(fpath)
-				elif fpath.endswith("_reverse.cdt"): 
-					antisense_files.append(fpath)
-				else:
-					unstranded_files.append(fpath)
-		
-		sense_files.sort()
-		antisense_files.sort()
-			
-		# Declaring plotting parameters
-		f, ax = subplots(1,1,sharex="all")
-		if args.shaded:
-			 f.subplots_adjust(hspace=0)
-			
-		for i, unstranded_file in enumerate(unstranded_files):
-			X, Y, xmin, xmax, noL = process_file(unstranded_file)
-			label = os.path.basename(unstranded_file).split(".")[0]
-			plot_graph(X, Y, None, xmin, xmax, args.w, args.y, args.shaded, args.normalize, ax, label, i, noL)
+def main():
+    """Main function to run the plotting script."""
+    parser = argparse.ArgumentParser(description="Generate composite plots from CDT files.")
+    parser.add_argument("input_directory", help="Path to directory containing *.cdt files.")
+    parser.add_argument("-w", "--window_size", type=int, default=10, help="Window size for moving average. Default=10.")
+    parser.add_argument("-y", "--y_limit", type=float, help="Set a fixed y-axis limit.")
+    parser.add_argument("--shaded", action="store_true", help="Create shaded plots instead of line plots.")
+    parser.add_argument("--normalize", action="store_true", help="Normalize each profile to its max value (0 to 1).")
+    parser.add_argument("-o", "--output_file", help="Output file name (e.g., plot.svg). Default is composite_plot.svg in the input directory.")
+    args = parser.parse_args()
 
-		for i, (sense_file, antisense_file) in enumerate(zip(sense_files, antisense_files)):
-			X, Y1, xmin1, xmax1, noL = process_file(sense_file)
-			X, Y2, xmin2, xmax2, noL = process_file(antisense_file)
-			xmin = min((xmin1, xmin2))
-			xmax = max((xmax1, xmax2))
-			label = os.path.basename(sense_file).split("_")[0]
-			plot_graph(X, Y1, Y2, xmin, xmax, args.w, args.y, args.shaded, args.normalize, ax, label, i, noL)
+    if not os.path.isdir(args.input_directory):
+        parser.error(f"Input directory not found: {args.input_directory}")
 
-		ax.legend()
-		savefig(outfile)
-	   
-# Execute the main function -> run() 
+    cdt_files = sorted([os.path.join(args.input_directory, f) for f in os.listdir(args.input_directory) if f.endswith(".cdt")])
+
+    if not cdt_files:
+        print("No .cdt files found in the specified directory.")
+        return
+
+    plt.style.use('seaborn-v0_8-whitegrid')
+    fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+
+    for i, cdt_file in enumerate(cdt_files):
+        x, y_avg, num_lines = process_file(cdt_file)
+        label = os.path.basename(cdt_file).replace('.cdt', '')
+        color = COLORS[i % len(COLORS)]
+        plot_graph(ax, x, y_avg, args.window_size, args.y_limit, args.shaded, args.normalize, label, color, num_lines)
+
+    ax.set_title("Composite Signal Profile", fontsize=16)
+    ax.set_xlabel("Genomic Position (bp)", fontsize=12)
+    ax.set_ylabel("Average Signal", fontsize=12)
+    ax.axhline(0, color='black', lw=0.8)
+    ax.legend(loc='upper right')
+    fig.tight_layout()
+
+    if args.output_file:
+        outfile = args.output_file
+    else:
+        outfile = os.path.join(args.input_directory, "composite_plot.svg")
+
+    try:
+        fig.savefig(outfile)
+        print(f"\nPlot saved to {outfile}")
+    except (IOError, PermissionError) as e:
+        print(f"Error saving plot: {e}", file=sys.stderr)
+
 if __name__ == "__main__":
-	run() 
+    main()
