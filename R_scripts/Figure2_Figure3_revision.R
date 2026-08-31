@@ -489,7 +489,7 @@ kmeans_df  <- df[complete.cases(df[, markers]), ]
 kmeans_mat <- scale(as.matrix(kmeans_df[, markers]))
 
 set.seed(42)
-k_res             <- kmeans(kmeans_mat, centers = 4, nstart = 25)
+k_res             <- kmeans(kmeans_mat, centers = 3, nstart = 25)
 kmeans_df$Cluster <- as.factor(k_res$cluster)
 
 k_pca             <- prcomp(kmeans_mat, center = FALSE, scale. = FALSE)
@@ -878,8 +878,8 @@ ggsave(file.path(out_dir, "Fig2a_delta_pca.pdf"),       panel_a,      width = 11
 ggsave(file.path(out_dir, "Fig2b_kmeans.pdf"),          panel_kmeans, width = 11,  height = 13, device = "pdf", limitsize = FALSE)
 ggsave(file.path(out_dir, "Fig2c_heatmap_pre.pdf"),     panel_b_pre,  width = 11,  height = 16, device = "pdf", limitsize = FALSE)
 ggsave(file.path(out_dir, "Fig2c_heatmap_post.pdf"),    panel_b_post, width = 11,  height = 16, device = "pdf", limitsize = FALSE)
-ggsave(file.path(out_dir, "Fig3a_significance.pdf"),    panel_c_gg,      width = 14, height = 16, device = "pdf", limitsize = FALSE)
-ggsave(file.path(out_dir, "Supplementary_Figure3_FiveColumn_Heatmap.pdf"),
+ggsave(file.path(out_dir, "Fig3a_significance.interaction.pdf"),    panel_c_gg,      width = 14, height = 16, device = "pdf", limitsize = FALSE)
+ggsave(file.path(out_dir, "Fig3a_significance.pdf"),
        panel_c_5col_gg, width = 16, height = 16, device = "pdf", limitsize = FALSE)
 ggsave(file.path(out_dir, "Fig3b_boxplots.pdf"),        panel_d,      width = 14,  height = 20, device = "pdf", limitsize = FALSE)
 
